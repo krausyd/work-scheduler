@@ -27,9 +27,17 @@ function saveTask() {
     const textInput = $("#editing_" + taskHour);
     if (textInput.length) {
         tasks[taskHour] = textInput.val().trim();
+        // Show notification that item was saved to localStorage by adding class 'show'
+        $('.notification').addClass('show');
+
+        // Timeout to remove 'show' class after 5 seconds
+        setTimeout(function() {
+            $('.notification').removeClass('show');
+        }, 5000);
+
+        textInput.replaceWith(createReadOnlyTask(taskHour));
+        localStorage.setItem("tasks", JSON.stringify(tasks));
     }
-    textInput.replaceWith(createReadOnlyTask(taskHour));
-    localStorage.setItem("tasks", JSON.stringify(tasks));
 }
 
 function createReadOnlyTask(index) {

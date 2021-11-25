@@ -1,22 +1,60 @@
 let timeTableEl;
+let tasks = {};
 function showTodayDate() {
     let todayDateEl = $("#currentDay");
     todayDateEl.text(moment().format("MMM DD, YYYY HH:mm:ss"));
 }
 
+function editTask() {
+    const taskHour = this.id.replace("data_", "");
+    let text = $(this).text().trim();
+    let textInput = $("<textarea>", {
+        class: "col-md-10 description",
+        id: "editing_" + taskHour
+    }).val(text);
+    $(this).replaceWith(textInput);
+}
+
+function loadTasks() {
+    const storedTasks = localStorage.getItem("tasks");
+    if (storedTasks) {
+        tasks = JSON.parse(storedTasks);
+    }
+}
+
+function saveTask() {
+    const taskHour = this.id.replace("save_", "");
+    const textInput = $("#editing_" + taskHour);
+    if (textInput.length) {
+        tasks[taskHour] = textInput.val().trim();
+    }
+    textInput.replaceWith(createReadOnlyTask(taskHour));
+    localStorage.setItem("tasks", JSON.stringify(tasks));
+}
+
+function createReadOnlyTask(index) {
+    let taskEl = $("<div>", {
+        class: "col-md-10 description",
+        id: "data_" + index
+    });
+    if (tasks[index]) {
+        taskEl.append(tasks[index]);
+    }
+    taskEl.on("click", editTask);
+
+    return taskEl
+}
+
 function createTimeTable() {
-    for(let i=7; i<20; i++) {
+    loadTasks();
+    for(let i=7; i<=20; i++) {
         let timeSlotEl = $("<div>", { class: "row time-block "  + getTimeColor(i) });
 
         let hourEl = $("<div>", { class: "col-md-1 hour" });
         hourEl.append(i + ":00");
         timeSlotEl.append(hourEl);
 
-        let taskEl = $("<div>", {
-            class: "col-md-10 description",
-            id: "data_" + i
-        });
-        timeSlotEl.append(taskEl);
+        timeSlotEl.append(createReadOnlyTask(i));
 
         let saveButtonEl = $("<button>", {
             type: "button",
@@ -26,6 +64,7 @@ function createTimeTable() {
         let saveButtonTextEl = $("<i>", {
             class: "fas fa-save"
         });
+        saveButtonEl.on("click", saveTask);
         saveButtonEl.append(saveButtonTextEl);
         timeSlotEl.append(saveButtonEl);
 
